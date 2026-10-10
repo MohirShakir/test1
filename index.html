@@ -1,0 +1,972 @@
+<!DOCTYPE html>
+<html lang="en" class="dark">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>UPHS Your Scan-in System</title>
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            darkMode: 'class',
+            theme: {
+                extend: {
+                    colors: {
+                        uphs: {
+                            gold: '#f59e0b',
+                            goldHover: '#d97706',
+                            crimson: '#881337',
+                            darkBg: '#0f172a',
+                            panelBg: '#1e293b'
+                        },
+                        excel: {
+                            500: '#107c41',
+                            600: '#0f6c38'
+                        }
+                    },
+                    fontFamily: {
+                        sans: ['Inter', 'sans-serif'],
+                        mono: ['JetBrains Mono', 'Fira Code', 'monospace']
+                    }
+                }
+            }
+        }
+    </script>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <script src="https://unpkg.com/lucide@latest"></script>
+    <style>
+        body { font-family: 'Inter', sans-serif; }
+        .font-mono-code { font-family: 'JetBrains Mono', monospace; }
+        @keyframes phoenix-pulse {
+            0%, 100% { filter: drop-shadow(0 0 10px rgba(245, 158, 11, 0.4)); }
+            50% { filter: drop-shadow(0 0 22px rgba(245, 158, 11, 0.8)); }
+        }
+        .phoenix-glow { animation: phoenix-pulse 3s infinite ease-in-out; }
+        .excel-table th, .excel-table td {
+            border-right: 1px solid rgba(148, 163, 184, 0.15);
+            border-bottom: 1px solid rgba(148, 163, 184, 0.15);
+        }
+        .excel-table tr:hover td {
+            background-color: rgba(245, 158, 11, 0.05);
+        }
+    </style>
+</head>
+<body class="bg-slate-950 text-slate-100 min-h-screen flex flex-col justify-between transition-colors duration-300 antialiased selection:bg-amber-500 selection:text-slate-950">
+
+    <header class="border-b border-slate-800 bg-slate-900/90 backdrop-blur-md sticky top-0 z-40 px-4 lg:px-8 py-3 flex flex-col md:flex-row items-center justify-between gap-3 shadow-md">
+        <div class="flex items-center space-x-3 w-full md:w-auto justify-between md:justify-start">
+            <div class="flex items-center space-x-3">
+                <!-- Custom Majestic Phoenix SVG Logo -->
+                <div class="bg-gradient-to-br from-amber-500/20 via-rose-950/40 to-amber-600/10 p-2 rounded-2xl border border-amber-500/40 text-amber-400 flex items-center justify-center phoenix-glow">
+                    <svg class="w-8 h-8 fill-current text-amber-400" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                        <path d="M12 2C11.5 3.5 10 5 8.5 5.5C7 6 5.5 5 4.5 6.5C3.5 8 4 10 3 11.5C2 13 0.5 14 1 16C1.5 18 3.5 19.5 5.5 19.5C4 18.5 3.5 17 4.5 15.5C5.5 14 7 14 8 12.5C9 11 9 9 10.5 8C11 7.5 11.5 8.5 12 9C12.5 8.5 13 7.5 13.5 8C15 9 15 11 16 12.5C17 14 18.5 14 19.5 15.5C20.5 17 20 18.5 18.5 19.5C20.5 19.5 22.5 18 23 16C23.5 14 22 13 21 11.5C20 10 20.5 8 19.5 6.5C18.5 5 17 6 15.5 5.5C14 5 12.5 3.5 12 2Z" />
+                        <path d="M12 9C11.2 10.5 10 12 10 14C10 16 11 17.5 12 19C13 17.5 14 16 14 14C14 12 12.8 10.5 12 9Z" class="text-rose-500 fill-current"/>
+                        <path d="M12 13.5C11.5 14.5 11 15.5 11 16.5C11 17.5 11.5 18 12 18.5C12.5 18 13 17.5 13 16.5C13 15.5 12.5 14.5 12 13.5Z" class="text-amber-200 fill-current"/>
+                    </svg>
+                </div>
+                <div>
+                    <h1 class="font-bold text-lg sm:text-xl leading-tight tracking-tight text-white flex items-center gap-2">
+                        UPHS <span class="text-amber-400">Your Scan-in System</span>
+                    </h1>
+                    <p class="text-xs text-amber-200/70 font-medium">Health System Access & Attendance Gate Control</p>
+                </div>
+            </div>
+
+            <button id="theme-toggle-mobile" class="md:hidden p-2 rounded-xl bg-slate-800 text-slate-300">
+                <i data-lucide="sun" class="w-5 h-5 hidden dark:block text-amber-400"></i>
+                <i data-lucide="moon" class="w-5 h-5 block dark:hidden text-slate-700"></i>
+            </button>
+        </div>
+
+        <nav class="flex items-center bg-slate-950 p-1 rounded-xl border border-slate-800 w-full md:w-auto justify-center">
+            <button id="nav-scanner" onclick="switchView('scanner')" class="flex items-center space-x-2 px-3.5 py-2 rounded-lg text-xs font-semibold transition-all bg-amber-500 text-slate-950 font-bold shadow-md">
+                <i data-lucide="scan" class="w-4 h-4"></i>
+                <span>ID Scanner</span>
+            </button>
+            <button id="nav-excel" onclick="switchView('excel')" class="flex items-center space-x-2 px-3.5 py-2 rounded-lg text-xs font-semibold text-slate-400 hover:text-slate-200 transition-all relative">
+                <i data-lucide="table" class="w-4 h-4 text-emerald-500"></i>
+                <span>Excel Log Matrix</span>
+                <span id="log-badge-count" class="ml-1 px-1.5 py-0.2 rounded-full bg-amber-500/20 text-amber-400 text-[10px] font-mono-code border border-amber-500/30">0</span>
+            </button>
+            <button id="nav-directory" onclick="switchView('directory')" class="flex items-center space-x-2 px-3.5 py-2 rounded-lg text-xs font-semibold text-slate-400 hover:text-slate-200 transition-all">
+                <i data-lucide="users" class="w-4 h-4 text-amber-400"></i>
+                <span>Employee Directory</span>
+            </button>
+        </nav>
+
+        <div class="hidden md:flex items-center space-x-3">
+            <button id="theme-toggle" class="p-2.5 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-300 hover:text-white transition-all border border-slate-700/50" title="Toggle Theme">
+                <i data-lucide="sun" class="w-5 h-5 hidden dark:block text-amber-400"></i>
+                <i data-lucide="moon" class="w-5 h-5 block dark:hidden text-slate-700"></i>
+            </button>
+        </div>
+    </header>
+
+    <main id="view-scanner" class="flex-grow flex flex-col items-center justify-center px-4 py-8 relative max-w-5xl mx-auto w-full">
+        
+        <!-- Status Notification Banner -->
+        <div id="status-banner" class="w-full max-w-xl mb-6 transition-all duration-300 opacity-0 transform -translate-y-2 pointer-events-none">
+            <div id="status-banner-content" class="p-4 rounded-xl border flex items-center justify-between shadow-xl">
+                <div class="flex items-center space-x-3">
+                    <i id="status-icon" data-lucide="shield-check" class="w-6 h-6"></i>
+                    <div>
+                        <h4 id="status-title" class="font-semibold text-sm">Scan Result</h4>
+                        <p id="status-desc" class="text-xs opacity-90 font-mono-code">ID Check</p>
+                    </div>
+                </div>
+                <span id="status-badge" class="text-xs uppercase font-bold px-2.5 py-1 rounded-md">STATUS</span>
+            </div>
+        </div>
+
+        <!-- Scanner Card -->
+        <div class="w-full max-w-xl bg-slate-900/90 border border-amber-500/30 rounded-2xl p-6 sm:p-8 shadow-2xl backdrop-blur-xl transition-all relative overflow-hidden">
+            <div class="absolute -top-12 -right-12 w-32 h-32 bg-amber-500/10 rounded-full blur-2xl pointer-events-none"></div>
+
+            <div class="text-center mb-6">
+                <div class="inline-flex items-center justify-center w-16 h-16 rounded-full bg-amber-500/10 text-amber-400 mb-3 border border-amber-500/30 shadow-inner">
+                    <i data-lucide="scan-line" class="w-8 h-8"></i>
+                </div>
+                <h2 class="text-xl sm:text-2xl font-bold text-slate-100">UPHS Gate Scan Terminal</h2>
+                <p class="text-xs sm:text-sm text-slate-400 mt-1">Select employee name or scan badge ID</p>
+            </div>
+
+            <!-- Employee Dropdown & Manual Input Form -->
+            <form id="scan-form" onsubmit="event.preventDefault(); processScan();" class="space-y-4">
+                
+                <!-- Employee Dropdown Selector -->
+                <div>
+                    <label for="employee-select" class="block text-xs font-semibold text-amber-400 mb-1 flex items-center gap-1.5">
+                        <i data-lucide="user-check" class="w-3.5 h-3.5"></i> Select Registered Employee
+                    </label>
+                    <select id="employee-select" onchange="onSelectEmployee(this.value)" class="w-full px-4 py-3 bg-slate-950 border border-slate-700 focus:border-amber-500 text-slate-100 text-sm rounded-xl focus:outline-none focus:ring-2 focus:ring-amber-500/20 transition-all">
+                        <option value="">-- Choose Employee to Auto-Fill Scan --</option>
+                    </select>
+                </div>
+
+                <!-- Input Box in the Middle -->
+                <div class="relative">
+                    <div class="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none text-slate-400">
+                        <i data-lucide="barcode" class="w-6 h-6"></i>
+                    </div>
+                    <input 
+                        type="text" 
+                        id="id-input" 
+                        placeholder="Scan or enter Employee ID..." 
+                        autocomplete="off"
+                        autofocus
+                        class="w-full pl-12 pr-28 py-4 bg-slate-950 border-2 border-slate-700 focus:border-amber-500 text-slate-100 font-mono-code text-lg sm:text-xl rounded-xl focus:outline-none focus:ring-4 focus:ring-amber-500/20 transition-all placeholder:text-slate-600 placeholder:font-sans"
+                    >
+                    <div class="absolute inset-y-0 right-2 flex items-center">
+                        <button 
+                            type="submit" 
+                            class="px-4 py-2 bg-amber-500 hover:bg-amber-600 text-slate-950 font-bold text-sm rounded-lg transition-all shadow-md flex items-center gap-1.5 active:scale-95"
+                        >
+                            <span>Scan In</span>
+                            <i data-lucide="arrow-right" class="w-4 h-4"></i>
+                        </button>
+                    </div>
+                </div>
+
+                <div class="flex items-center justify-between text-xs text-slate-400 pt-1">
+                    <div class="flex items-center space-x-2">
+                        <input type="checkbox" id="auto-clear" class="rounded border-slate-700 bg-slate-950 text-amber-500 focus:ring-amber-500/20" checked>
+                        <label for="auto-clear" class="cursor-pointer select-none">Auto-clear after scan</label>
+                    </div>
+                    <span class="text-[11px] text-amber-400/80 italic">* Only registered directory IDs granted</span>
+                </div>
+            </form>
+        </div>
+
+        <!-- Live Scan Stream (Masked - Strictly Last 3 Entries) -->
+        <div class="w-full max-w-xl mt-8">
+            <div class="flex items-center justify-between mb-3">
+                <span class="text-xs font-semibold uppercase tracking-wider text-slate-400 flex items-center gap-1.5">
+                    <i data-lucide="history" class="w-3.5 h-3.5 text-amber-400"></i>
+                    Live Scan Stream (Masked)
+                    <span class="text-[10px] bg-slate-800 text-amber-400 px-2 py-0.5 rounded-full border border-slate-700 font-mono-code">Last 3 Entries</span>
+                </span>
+                <button onclick="switchView('excel')" class="text-xs text-amber-400 hover:underline flex items-center gap-1">
+                    Full Log Matrix <i data-lucide="chevron-right" class="w-3 h-3"></i>
+                </button>
+            </div>
+            <div class="bg-slate-900/60 border border-slate-800 rounded-xl overflow-hidden shadow-lg">
+                <table class="w-full text-left text-xs">
+                    <thead class="bg-slate-950/90 text-slate-400 border-b border-slate-800 font-mono-code uppercase">
+                        <tr>
+                            <th class="py-2.5 px-3">Date</th>
+                            <th class="py-2.5 px-3">Time</th>
+                            <th class="py-2.5 px-3">Masked ID Ref</th>
+                            <th class="py-2.5 px-3 text-right">Access</th>
+                        </tr>
+                    </thead>
+                    <tbody id="quick-log-body" class="divide-y divide-slate-800/80 font-mono-code">
+                        <!-- Strictly 3 entries -->
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </main>
+
+    <main id="view-excel" class="hidden flex-grow flex-col px-4 lg:px-8 py-6 w-full max-w-7xl mx-auto">
+        
+        <!-- Toolbar & Statistics -->
+        <div class="bg-slate-900/90 border border-slate-800 rounded-2xl p-4 mb-6 shadow-xl backdrop-blur-md">
+            <div class="flex flex-col lg:flex-row items-start lg:items-center justify-between gap-4">
+                
+                <div class="grid grid-cols-2 sm:grid-cols-4 gap-3 w-full lg:w-auto">
+                    <div class="bg-slate-950 border border-slate-800 p-3 rounded-xl">
+                        <div class="text-xs text-slate-400">Total Scans</div>
+                        <div id="stat-total" class="text-xl font-bold font-mono-code text-white">0</div>
+                    </div>
+                    <div class="bg-slate-950 border border-emerald-500/30 p-3 rounded-xl">
+                        <div class="text-xs text-emerald-400">On Time Scans</div>
+                        <div id="stat-ontime" class="text-xl font-bold font-mono-code text-emerald-400">0</div>
+                    </div>
+                    <div class="bg-slate-950 border border-rose-500/30 p-3 rounded-xl">
+                        <div class="text-xs text-rose-400">Late Arrivals</div>
+                        <div id="stat-late" class="text-xl font-bold font-mono-code text-rose-400">0</div>
+                    </div>
+                    <div class="bg-slate-950 border border-amber-500/30 p-3 rounded-xl">
+                        <div class="text-xs text-amber-400">Manual Overrides</div>
+                        <div id="stat-override" class="text-xl font-bold font-mono-code text-amber-400">0</div>
+                    </div>
+                </div>
+
+                <div class="flex flex-wrap items-center gap-2 w-full lg:w-auto justify-end">
+                    <button onclick="exportToCSV()" class="px-3.5 py-2 bg-excel-500 hover:bg-excel-600 text-white rounded-xl text-xs font-bold flex items-center gap-1.5 transition-all shadow-md">
+                        <i data-lucide="file-spreadsheet" class="w-4 h-4"></i> Export CSV / Excel
+                    </button>
+                    <label class="px-3.5 py-2 bg-slate-800 hover:bg-slate-700 text-slate-200 rounded-xl text-xs font-semibold flex items-center gap-1.5 cursor-pointer transition-all border border-slate-700">
+                        <i data-lucide="upload" class="w-4 h-4 text-amber-400"></i> Import CSV
+                        <input type="file" id="csv-import-file" accept=".csv" onchange="importCSV(event)" class="hidden">
+                    </label>
+                    <button onclick="clearAllData()" class="px-3 py-2 bg-rose-500/20 border border-rose-500/30 hover:bg-rose-500/30 text-rose-300 rounded-xl text-xs font-semibold flex items-center gap-1.5 transition-all">
+                        <i data-lucide="trash-2" class="w-4 h-4"></i> Clear Logs
+                    </button>
+                </div>
+            </div>
+
+            <!-- Filters -->
+            <div class="mt-4 pt-4 border-t border-slate-800 grid grid-cols-1 sm:grid-cols-2 gap-3">
+                <div class="relative">
+                    <i data-lucide="search" class="w-4 h-4 absolute left-3 top-3 text-slate-400"></i>
+                    <input 
+                        type="text" 
+                        id="filter-search" 
+                        oninput="renderExcelTable()" 
+                        placeholder="Search Employee ID, Name, Date, Notes..." 
+                        class="w-full pl-9 pr-3 py-2 bg-slate-950 border border-slate-800 rounded-xl text-xs text-slate-200 focus:outline-none focus:border-amber-500"
+                    >
+                </div>
+                <div>
+                    <!-- Status Filter Dropdown: All Statuses, ON TIME, LATE -->
+                    <select id="filter-status" onchange="renderExcelTable()" class="w-full px-3 py-2 bg-slate-950 border border-slate-800 rounded-xl text-xs text-slate-200 focus:outline-none focus:border-amber-500 font-semibold">
+                        <option value="ALL">All Statuses</option>
+                        <option value="ON TIME">ON TIME Only</option>
+                        <option value="LATE">LATE Only</option>
+                    </select>
+                </div>
+            </div>
+        </div>
+
+        <!-- Excel Table Grid -->
+        <div class="bg-slate-900/90 border border-slate-800 rounded-2xl overflow-hidden shadow-2xl flex-grow flex flex-col">
+            <div class="overflow-x-auto flex-grow max-h-[550px]">
+                <table class="w-full text-left text-xs excel-table border-collapse">
+                    <thead class="bg-slate-950 text-slate-300 font-mono-code uppercase sticky top-0 z-10 shadow-sm">
+                        <tr>
+                            <th class="py-3 px-3 w-10 text-center bg-slate-950">#</th>
+                            <th class="py-3 px-4 text-amber-400">Employee ID</th>
+                            <th class="py-3 px-4">Employee Name</th>
+                            <th class="py-3 px-4">Date</th>
+                            <th class="py-3 px-4">Scan Time</th>
+                            <th class="py-3 px-4">Arrival Status</th>
+                            <th class="py-3 px-4 text-center bg-slate-950 border-x border-amber-500/20 text-amber-400">
+                                Manual Override
+                            </th>
+                            <th class="py-3 px-4">Editable Notes</th>
+                            <th class="py-3 px-3 text-center w-12">Action</th>
+                        </tr>
+                    </thead>
+                    <tbody id="excel-table-body" class="divide-y divide-slate-800 font-mono-code">
+                        <!-- Dynamic Excel Rows -->
+                    </tbody>
+                </table>
+            </div>
+            <div class="bg-slate-950 border-t border-slate-800 px-4 py-2.5 text-[11px] text-slate-400 flex items-center justify-between">
+                <span>Logged Scans: <strong id="displayed-count" class="text-amber-400">0</strong> entries</span>
+                <span class="text-slate-500">Unmasked ID References Active</span>
+            </div>
+        </div>
+    </main>
+
+    <main id="view-directory" class="hidden flex-grow flex-col px-4 lg:px-8 py-6 w-full max-w-7xl mx-auto">
+        
+        <div class="bg-slate-900/90 border border-slate-800 rounded-2xl p-5 mb-6 shadow-xl backdrop-blur-md flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
+            <div>
+                <h2 class="text-lg font-bold text-white flex items-center gap-2">
+                    <i data-lucide="users" class="w-5 h-5 text-amber-400"></i>
+                    Employee Directory & Access Control
+                </h2>
+                <p class="text-xs text-slate-400 mt-0.5">Only registered employees can scan in. Set scheduled arrival time & late accommodations.</p>
+            </div>
+            <button onclick="openAddEmployeeModal()" class="px-4 py-2.5 bg-amber-500 hover:bg-amber-600 text-slate-950 font-bold rounded-xl text-xs flex items-center gap-2 transition-all shadow-lg active:scale-95">
+                <i data-lucide="user-plus" class="w-4 h-4"></i> Add New Employee
+            </button>
+        </div>
+
+        <div class="bg-slate-900/90 border border-slate-800 rounded-2xl overflow-hidden shadow-2xl flex-grow flex flex-col">
+            <div class="overflow-x-auto">
+                <table class="w-full text-left text-xs border-collapse">
+                    <thead class="bg-slate-950 text-slate-300 font-mono-code uppercase border-b border-slate-800">
+                        <tr>
+                            <th class="py-3 px-4">Employee ID</th>
+                            <th class="py-3 px-4">Full Name</th>
+                            <th class="py-3 px-4">Scheduled Arrival</th>
+                            <th class="py-3 px-4">Late Accommodation</th>
+                            <th class="py-3 px-4">Last Scan Time</th>
+                            <th class="py-3 px-3 text-center">Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody id="directory-table-body" class="divide-y divide-slate-800">
+                        <!-- Dynamic Directory Rows -->
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </main>
+
+    <!-- Modal: Add / Edit Employee -->
+    <div id="employee-modal" class="fixed inset-0 bg-slate-950/80 backdrop-blur-sm z-50 flex items-center justify-center p-4 hidden">
+        <div class="bg-slate-900 border border-slate-700 rounded-2xl max-w-md w-full p-6 shadow-2xl space-y-4">
+            <div class="flex items-center justify-between border-b border-slate-800 pb-3">
+                <h3 id="modal-title" class="font-bold text-slate-100 text-base">Add Employee</h3>
+                <button onclick="closeEmployeeModal()" class="text-slate-400 hover:text-white">
+                    <i data-lucide="x" class="w-5 h-5"></i>
+                </button>
+            </div>
+            <form id="employee-form" onsubmit="event.preventDefault(); saveEmployee();" class="space-y-3 text-xs">
+                <input type="hidden" id="emp-internal-id">
+                <div>
+                    <label class="block text-slate-400 mb-1">Employee ID Ref</label>
+                    <input type="text" id="emp-id-input" required placeholder="e.g. 84920482" class="w-full bg-slate-950 border border-slate-700 rounded-xl px-3 py-2 font-mono-code text-white focus:border-amber-500 focus:outline-none">
+                </div>
+                <div>
+                    <label class="block text-slate-400 mb-1">Full Name</label>
+                    <input type="text" id="emp-name-input" required placeholder="e.g. Dr. Alex Vance" class="w-full bg-slate-950 border border-slate-700 rounded-xl px-3 py-2 text-white focus:border-amber-500 focus:outline-none">
+                </div>
+                <div>
+                    <label class="block text-slate-400 mb-1">Scheduled Shift Arrival Time</label>
+                    <input type="text" id="emp-time-input" required value="07:30 AM" placeholder="07:30 AM" class="w-full bg-slate-950 border border-slate-700 rounded-xl px-3 py-2 font-mono-code text-white focus:border-amber-500 focus:outline-none">
+                </div>
+                <div>
+                    <label class="block text-slate-400 mb-1">Late Accommodation Note (Optional)</label>
+                    <input type="text" id="emp-flex-input" placeholder="e.g. Flex Schedule Pass" class="w-full bg-slate-950 border border-slate-700 rounded-xl px-3 py-2 text-white focus:border-amber-500 focus:outline-none">
+                </div>
+                <div class="pt-3 flex justify-end space-x-2">
+                    <button type="button" onclick="closeEmployeeModal()" class="px-4 py-2 bg-slate-800 hover:bg-slate-700 text-slate-300 rounded-xl">Cancel</button>
+                    <button type="submit" class="px-4 py-2 bg-amber-500 hover:bg-amber-600 text-slate-950 font-bold rounded-xl shadow-md">Save Employee</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <footer class="border-t border-slate-800/80 bg-slate-950/95 backdrop-blur-md px-4 sm:px-8 py-3.5 flex flex-col sm:flex-row items-center justify-between gap-4 text-slate-400 text-xs">
+        
+        <!-- Requirement: Pinned Live Clock and Date in the bottom-left corner -->
+        <div id="clock-container" class="flex items-center space-x-3 bg-slate-900 border border-amber-500/20 px-4 py-2 rounded-xl shadow-inner w-full sm:w-auto justify-center sm:justify-start">
+            <div class="p-2 bg-amber-500/10 text-amber-400 rounded-lg">
+                <i data-lucide="clock" class="w-5 h-5"></i>
+            </div>
+            <div class="flex flex-col">
+                <div id="live-time" class="font-mono-code font-bold text-slate-100 text-base leading-none">00:00:00 AM</div>
+                <div id="live-date" class="text-[11px] text-amber-200/70 mt-1 font-medium">Monday, January 1, 2026</div>
+            </div>
+        </div>
+
+        <div class="flex items-center space-x-4 text-slate-500 text-[11px]">
+            <span class="flex items-center gap-1.5"><span class="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></span> UPHS System Online</span>
+        </div>
+    </footer>
+
+    <script>
+        // Web Audio Synthesizer Beeps
+        const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+
+        function playSound(type) {
+            try {
+                if (audioCtx.state === 'suspended') {
+                    audioCtx.resume();
+                }
+                const osc = audioCtx.createOscillator();
+                const gain = audioCtx.createGain();
+                osc.connect(gain);
+                gain.connect(audioCtx.destination);
+
+                if (type === 'success') {
+                    osc.type = 'sine';
+                    osc.frequency.setValueAtTime(880, audioCtx.currentTime); 
+                    osc.frequency.setValueAtTime(1200, audioCtx.currentTime + 0.08); 
+                    gain.gain.setValueAtTime(0.12, audioCtx.currentTime);
+                    gain.gain.exponentialRampToValueAtTime(0.001, audioCtx.currentTime + 0.22);
+                    osc.start();
+                    osc.stop(audioCtx.currentTime + 0.22);
+                } else {
+                    osc.type = 'sawtooth';
+                    osc.frequency.setValueAtTime(220, audioCtx.currentTime); 
+                    gain.gain.setValueAtTime(0.2, audioCtx.currentTime);
+                    gain.gain.exponentialRampToValueAtTime(0.001, audioCtx.currentTime + 0.3);
+                    osc.start();
+                    osc.stop(audioCtx.currentTime + 0.3);
+                }
+            } catch (e) {
+                console.log("Audio feedback pending interaction");
+            }
+        }
+
+        // Live Clock Engine
+        function updateClock() {
+            const now = new Date();
+            const timeStr = now.toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit', second: '2-digit', hour12: true });
+            const dateStr = now.toLocaleDateString('en-US', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' });
+
+            document.getElementById('live-time').textContent = timeStr;
+            document.getElementById('live-date').textContent = dateStr;
+        }
+        setInterval(updateClock, 1000);
+        updateClock();
+
+        function maskID(idStr) {
+            if (!idStr) return '';
+            if (idStr.length <= 3) return idStr;
+            return idStr.substring(0, 3) + '*'.repeat(idStr.length - 3);
+        }
+
+        function parseTimeToMinutes(timeStr) {
+            if (!timeStr) return 0;
+            const match = timeStr.match(/(\d+):(\d+)(?::\d+)?\s*(AM|PM)/i);
+            if (!match) return 0;
+
+            let hours = parseInt(match[1], 10);
+            const minutes = parseInt(match[2], 10);
+            const period = match[3].toUpperCase();
+
+            if (period === 'PM' && hours < 12) hours += 12;
+            if (period === 'AM' && hours === 12) hours = 0;
+
+            return hours * 60 + minutes;
+        }
+
+        // Global State & Storage
+        let scanRecords = JSON.parse(localStorage.getItem('uphs_scan_logs') || '[]');
+        let employees = JSON.parse(localStorage.getItem('uphs_employees') || '[]');
+
+        if (employees.length === 0) {
+            employees = [
+                { id: '84920482', name: 'Dr. Alex Rivera', time: '07:30 AM', flex: '', lastArrival: '07:28:10 AM' },
+                { id: '10293847', name: 'Sara Jenkins, RN', time: '07:30 AM', flex: 'Approved Flex Shift Pass', lastArrival: '08:12:05 AM' },
+                { id: '55443322', name: 'Michael Vance', time: '07:30 AM', flex: '', lastArrival: '07:25:00 AM' },
+                { id: '99001122', name: 'David Kim', time: '07:30 AM', flex: '', lastArrival: '08:40:12 AM' }
+            ];
+            localStorage.setItem('uphs_employees', JSON.stringify(employees));
+        }
+
+        let isUnlocked = false;
+
+        function saveRecords() {
+            localStorage.setItem('uphs_scan_logs', JSON.stringify(scanRecords));
+            document.getElementById('log-badge-count').textContent = scanRecords.length;
+        }
+
+        function saveEmployees() {
+            localStorage.setItem('uphs_employees', JSON.stringify(employees));
+            populateEmployeeDropdown();
+        }
+
+        function populateEmployeeDropdown() {
+            const select = document.getElementById('employee-select');
+            select.innerHTML = `<option value="">-- Select Registered Employee --</option>` + 
+                employees.map(e => `<option value="${e.id}">${e.name} (ID: ${maskID(e.id)})</option>`).join('');
+        }
+
+        function onSelectEmployee(empId) {
+            if (empId) {
+                document.getElementById('id-input').value = empId;
+                processScan();
+            }
+        }
+
+        // Navigation Security Lock (`2026`)
+        function switchView(viewName) {
+            if ((viewName === 'excel' || viewName === 'directory') && !isUnlocked) {
+                const pin = prompt("UPHS Access Restricted. Enter System PIN:");
+                if (pin === '2026') {
+                    isUnlocked = true;
+                } else {
+                    alert("Incorrect PIN. Access Denied.");
+                    return;
+                }
+            }
+
+            const scannerView = document.getElementById('view-scanner');
+            const excelView = document.getElementById('view-excel');
+            const dirView = document.getElementById('view-directory');
+
+            const navScanner = document.getElementById('nav-scanner');
+            const navExcel = document.getElementById('nav-excel');
+            const navDir = document.getElementById('nav-directory');
+
+            [scannerView, excelView, dirView].forEach(el => {
+                el.classList.add('hidden');
+                el.classList.remove('flex');
+            });
+
+            const defaultNav = "flex items-center space-x-2 px-3.5 py-2 rounded-lg text-xs font-semibold text-slate-400 hover:text-slate-200 transition-all";
+            navScanner.className = defaultNav;
+            navExcel.className = defaultNav + " relative";
+            navDir.className = defaultNav;
+
+            if (viewName === 'scanner') {
+                scannerView.classList.remove('hidden');
+                scannerView.classList.add('flex');
+                navScanner.className = "flex items-center space-x-2 px-3.5 py-2 rounded-lg text-xs font-semibold transition-all bg-amber-500 text-slate-950 font-bold shadow-md";
+                document.getElementById('id-input').focus();
+            } else if (viewName === 'excel') {
+                excelView.classList.remove('hidden');
+                excelView.classList.add('flex');
+                navExcel.className = "flex items-center space-x-2 px-3.5 py-2 rounded-lg text-xs font-semibold transition-all bg-excel-500 text-white shadow-md relative";
+                renderExcelTable();
+            } else if (viewName === 'directory') {
+                dirView.classList.remove('hidden');
+                dirView.classList.add('flex');
+                navDir.className = "flex items-center space-x-2 px-3.5 py-2 rounded-lg text-xs font-semibold transition-all bg-amber-500 text-slate-950 font-bold shadow-md";
+                renderDirectoryTable();
+            }
+        }
+
+        // Strict Directory Verification Scan Logic
+        function processScan() {
+            const input = document.getElementById('id-input');
+            const rawId = input.value.trim();
+            if (!rawId) return;
+
+            // Verification against Employee Directory
+            const emp = employees.find(e => e.id === rawId);
+            const isRegistered = !!emp;
+
+            const masked = maskID(rawId);
+            const now = new Date();
+            const dateStr = now.toISOString().split('T')[0];
+            const timeStr = now.toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit', second: '2-digit', hour12: true });
+
+            if (isRegistered) {
+                emp.lastArrival = timeStr;
+                saveEmployees();
+
+                const newRecord = {
+                    id: Date.now(),
+                    rawId: rawId,
+                    maskedId: masked,
+                    date: dateStr,
+                    time: timeStr,
+                    manualOverride: false,
+                    notes: `Scan: ${emp.name}`
+                };
+
+                scanRecords.unshift(newRecord);
+                saveRecords();
+                triggerScanBanner(emp.name, masked, true);
+            } else {
+                triggerScanBanner("Unregistered ID", masked, false);
+            }
+
+            renderQuickLog();
+
+            if (document.getElementById('auto-clear').checked) {
+                input.value = '';
+                document.getElementById('employee-select').value = '';
+            }
+            input.focus();
+        }
+
+        function triggerScanBanner(name, maskedId, isGranted) {
+            const banner = document.getElementById('status-banner');
+            const content = document.getElementById('status-banner-content');
+            const title = document.getElementById('status-title');
+            const desc = document.getElementById('status-desc');
+            const badge = document.getElementById('status-badge');
+
+            playSound(isGranted ? 'success' : 'error');
+
+            if (isGranted) {
+                content.className = "p-4 rounded-xl border flex items-center justify-between shadow-xl bg-emerald-500/10 border-emerald-500/30 text-emerald-300";
+                badge.className = "text-xs uppercase font-bold px-2.5 py-1 rounded-md bg-emerald-500/20 text-emerald-400 border border-emerald-500/30";
+                badge.textContent = "GRANTED";
+                title.textContent = `Welcome, ${name}`;
+                desc.textContent = `ID Ref: ${maskedId} - Verified`;
+            } else {
+                content.className = "p-4 rounded-xl border flex items-center justify-between shadow-xl bg-rose-500/10 border-rose-500/30 text-rose-300";
+                badge.className = "text-xs uppercase font-bold px-2.5 py-1 rounded-md bg-rose-500/20 text-rose-400 border border-rose-500/30";
+                badge.textContent = "DENIED";
+                title.textContent = "Access Denied";
+                desc.textContent = `ID ${maskedId} Not Found in Employee Directory`;
+            }
+
+            banner.classList.remove('opacity-0', '-translate-y-2', 'pointer-events-none');
+            clearTimeout(window.bannerTimer);
+            window.bannerTimer = setTimeout(() => {
+                banner.classList.add('opacity-0', '-translate-y-2', 'pointer-events-none');
+            }, 3000);
+        }
+
+        // Live Scan Stream: STRICTLY SHOWING ONLY LAST 3 ENTRIES
+        function renderQuickLog() {
+            const tbody = document.getElementById('quick-log-body');
+            const recentScans = scanRecords.slice(0, 3); // Restricted to 3 entries
+            
+            if (recentScans.length === 0) {
+                tbody.innerHTML = `<tr><td colspan="4" class="py-4 text-center text-slate-500 font-sans">No scans recorded yet.</td></tr>`;
+                return;
+            }
+
+            tbody.innerHTML = recentScans.map(rec => `
+                <tr class="hover:bg-slate-800/60 transition-colors">
+                    <td class="py-2.5 px-3 text-slate-400">${rec.date}</td>
+                    <td class="py-2.5 px-3 text-slate-400">${rec.time}</td>
+                    <td class="py-2.5 px-3 font-bold text-amber-400">${rec.maskedId}</td>
+                    <td class="py-2.5 px-3 text-right">
+                        <span class="px-2 py-0.5 rounded text-[10px] font-bold bg-emerald-500/10 text-emerald-400 border border-emerald-500/20">
+                            GRANTED
+                        </span>
+                    </td>
+                </tr>
+            `).join('');
+        }
+
+        // Arrival Evaluation: STRICT BINARY STATUS ("ON TIME" vs "LATE")
+        function evaluateAttendanceStatus(rec) {
+            if (rec.manualOverride) {
+                return {
+                    text: 'ON TIME (OVERRIDE)',
+                    badgeClass: 'bg-emerald-500/20 text-emerald-300 border-emerald-500/40 font-bold',
+                    statusKey: 'ON TIME',
+                    isOverride: true
+                };
+            }
+
+            const emp = employees.find(e => e.id === rec.rawId);
+            const scheduledTime = emp ? (emp.time || '07:30 AM') : '07:30 AM';
+
+            const scanMinutes = parseTimeToMinutes(rec.time);
+            const scheduledMinutes = parseTimeToMinutes(scheduledTime);
+
+            if (scanMinutes <= scheduledMinutes) {
+                return {
+                    text: 'ON TIME',
+                    badgeClass: 'bg-emerald-500/10 text-emerald-400 border-emerald-500/30 font-semibold',
+                    statusKey: 'ON TIME',
+                    isOverride: false
+                };
+            } else {
+                return {
+                    text: 'LATE',
+                    badgeClass: 'bg-rose-500/10 text-rose-400 border-rose-500/30 font-bold',
+                    statusKey: 'LATE',
+                    isOverride: false
+                };
+            }
+        }
+
+        function renderExcelTable() {
+            const tbody = document.getElementById('excel-table-body');
+            const searchVal = document.getElementById('filter-search').value.toLowerCase();
+            const statusFilter = document.getElementById('filter-status').value;
+
+            let onTimeCount = 0;
+            let lateCount = 0;
+            let overrideCount = 0;
+
+            let filtered = scanRecords.filter(rec => {
+                const emp = employees.find(e => e.id === rec.rawId);
+                const empName = emp ? emp.name : 'Unknown Employee';
+                const statusEval = evaluateAttendanceStatus(rec);
+
+                if (statusEval.statusKey === 'LATE') lateCount++;
+                else onTimeCount++;
+                if (statusEval.isOverride) overrideCount++;
+
+                const matchesSearch = 
+                    rec.rawId.toLowerCase().includes(searchVal) ||
+                    empName.toLowerCase().includes(searchVal) ||
+                    (rec.date && rec.date.toLowerCase().includes(searchVal)) ||
+                    (rec.time && rec.time.toLowerCase().includes(searchVal)) ||
+                    (rec.notes && rec.notes.toLowerCase().includes(searchVal));
+
+                let matchesStatus = true;
+                if (statusFilter === 'LATE') matchesStatus = (statusEval.statusKey === 'LATE');
+                if (statusFilter === 'ON TIME') matchesStatus = (statusEval.statusKey === 'ON TIME');
+
+                return matchesSearch && matchesStatus;
+            });
+
+            document.getElementById('stat-total').textContent = scanRecords.length;
+            document.getElementById('stat-ontime').textContent = onTimeCount;
+            document.getElementById('stat-late').textContent = lateCount;
+            document.getElementById('stat-override').textContent = overrideCount;
+            document.getElementById('displayed-count').textContent = filtered.length;
+
+            if (filtered.length === 0) {
+                tbody.innerHTML = `<tr><td colspan="9" class="py-8 text-center text-slate-500 font-sans">No matching records found.</td></tr>`;
+                return;
+            }
+
+            tbody.innerHTML = filtered.map((rec, index) => {
+                const emp = employees.find(e => e.id === rec.rawId);
+                const empName = emp ? emp.name : 'Directory Member';
+                const evalResult = evaluateAttendanceStatus(rec);
+
+                return `
+                    <tr class="hover:bg-slate-800/40 transition-colors">
+                        <td class="py-2.5 px-3 text-center text-slate-500 bg-slate-950">${index + 1}</td>
+                        <td class="py-2.5 px-4 text-amber-400 font-bold font-mono-code">${rec.rawId}</td>
+                        <td class="py-2.5 px-4 font-sans text-slate-200 font-semibold">${empName}</td>
+                        <td class="py-2.5 px-4 text-slate-300">${rec.date || '-'}</td>
+                        <td class="py-2.5 px-4 text-slate-300 font-bold">${rec.time || '-'}</td>
+                        <td class="py-2.5 px-4">
+                            <span class="px-2.5 py-0.5 rounded text-[10px] uppercase border ${evalResult.badgeClass}">
+                                ${evalResult.text}
+                            </span>
+                        </td>
+                        <td class="py-2.5 px-4 text-center bg-slate-950/40 border-x border-slate-800">
+                            <label class="inline-flex items-center justify-center cursor-pointer">
+                                <input 
+                                    type="checkbox" 
+                                    ${rec.manualOverride ? 'checked' : ''} 
+                                    onchange="toggleManualOverride(${rec.id}, this.checked)"
+                                    class="w-4 h-4 rounded border-slate-700 bg-slate-950 text-amber-500 focus:ring-amber-500/30 cursor-pointer"
+                                >
+                            </label>
+                        </td>
+                        <td class="py-2.5 px-4">
+                            <input 
+                                type="text" 
+                                value="${rec.notes || ''}" 
+                                onchange="updateRecordNotes(${rec.id}, this.value)" 
+                                class="bg-transparent border-b border-transparent hover:border-slate-700 focus:border-amber-500 focus:bg-slate-950 px-1 py-0.5 rounded text-xs text-slate-300 w-full focus:outline-none font-sans" 
+                                placeholder="Edit notes..."
+                            >
+                        </td>
+                        <td class="py-2.5 px-3 text-center">
+                            <button onclick="deleteRecord(${rec.id})" class="text-slate-500 hover:text-rose-400 transition-colors" title="Delete Row">
+                                <i data-lucide="trash-2" class="w-3.5 h-3.5"></i>
+                            </button>
+                        </td>
+                    </tr>
+                `;
+            }).join('');
+
+            lucide.createIcons();
+        }
+
+        function toggleManualOverride(recordId, isChecked) {
+            const rec = scanRecords.find(r => r.id === recordId);
+            if (rec) {
+                rec.manualOverride = isChecked;
+                saveRecords();
+                renderExcelTable();
+            }
+        }
+
+        function renderDirectoryTable() {
+            const tbody = document.getElementById('directory-table-body');
+
+            if (employees.length === 0) {
+                tbody.innerHTML = `<tr><td colspan="6" class="py-8 text-center text-slate-500 font-sans">No registered employees in directory.</td></tr>`;
+                return;
+            }
+
+            tbody.innerHTML = employees.map(emp => `
+                <tr class="hover:bg-slate-800/40 transition-colors font-mono-code">
+                    <td class="py-3 px-4 font-bold text-amber-400">${emp.id}</td>
+                    <td class="py-3 px-4 text-slate-100 font-sans font-semibold">${emp.name}</td>
+                    <td class="py-3 px-4 text-slate-300">${emp.time || '07:30 AM'}</td>
+                    <td class="py-3 px-4 text-slate-400 font-sans text-[11px]">${emp.flex || 'Standard Attendance'}</td>
+                    <td class="py-3 px-4 text-slate-200">${emp.lastArrival || 'N/A'}</td>
+                    <td class="py-3 px-3 text-center space-x-2">
+                        <button onclick="editEmployee('${emp.id}')" class="text-slate-400 hover:text-amber-400 transition-colors" title="Edit">
+                            <i data-lucide="edit-3" class="w-4 h-4 inline"></i>
+                        </button>
+                        <button onclick="deleteEmployee('${emp.id}')" class="text-slate-400 hover:text-rose-400 transition-colors" title="Remove">
+                            <i data-lucide="trash-2" class="w-4 h-4 inline"></i>
+                        </button>
+                    </td>
+                </tr>
+            `).join('');
+
+            lucide.createIcons();
+        }
+
+        function openAddEmployeeModal() {
+            document.getElementById('modal-title').textContent = "Add New Employee";
+            document.getElementById('emp-internal-id').value = "";
+            document.getElementById('emp-id-input').value = "";
+            document.getElementById('emp-name-input').value = "";
+            document.getElementById('emp-time-input').value = "07:30 AM";
+            document.getElementById('emp-flex-input').value = "";
+            document.getElementById('employee-modal').classList.remove('hidden');
+        }
+
+        function editEmployee(id) {
+            const emp = employees.find(e => e.id === id);
+            if (!emp) return;
+            document.getElementById('modal-title').textContent = "Edit Employee";
+            document.getElementById('emp-internal-id').value = emp.id;
+            document.getElementById('emp-id-input').value = emp.id;
+            document.getElementById('emp-name-input').value = emp.name;
+            document.getElementById('emp-time-input').value = emp.time || "07:30 AM";
+            document.getElementById('emp-flex-input').value = emp.flex || "";
+            document.getElementById('employee-modal').classList.remove('hidden');
+        }
+
+        function closeEmployeeModal() {
+            document.getElementById('employee-modal').classList.add('hidden');
+        }
+
+        function saveEmployee() {
+            const internalId = document.getElementById('emp-internal-id').value;
+            const empId = document.getElementById('emp-id-input').value.trim();
+            const name = document.getElementById('emp-name-input').value.trim();
+            const time = document.getElementById('emp-time-input').value.trim();
+            const flex = document.getElementById('emp-flex-input').value.trim();
+
+            if (!empId || !name) return;
+
+            if (internalId) {
+                const index = employees.findIndex(e => e.id === internalId);
+                if (index !== -1) {
+                    employees[index] = { ...employees[index], id: empId, name, time, flex };
+                }
+            } else {
+                employees.push({ id: empId, name, time: time || '07:30 AM', flex, lastArrival: null });
+            }
+
+            saveEmployees();
+            closeEmployeeModal();
+            renderDirectoryTable();
+            renderExcelTable();
+        }
+
+        function deleteEmployee(id) {
+            if (confirm("Remove employee from directory?")) {
+                employees = employees.filter(e => e.id !== id);
+                saveEmployees();
+                renderDirectoryTable();
+                renderExcelTable();
+            }
+        }
+
+        function updateRecordNotes(id, newNote) {
+            const item = scanRecords.find(r => r.id === id);
+            if (item) {
+                item.notes = newNote;
+                saveRecords();
+            }
+        }
+
+        function deleteRecord(id) {
+            scanRecords = scanRecords.filter(r => r.id !== id);
+            saveRecords();
+            renderExcelTable();
+            renderQuickLog();
+        }
+
+        function exportToCSV() {
+            if (scanRecords.length === 0) {
+                alert("No log records available to export.");
+                return;
+            }
+
+            let csv = "Employee ID,Employee Name,Date,Scan Time,Arrival Status,Manual Override,Notes\n";
+            scanRecords.forEach(r => {
+                const emp = employees.find(e => e.id === r.rawId);
+                const empName = emp ? emp.name : 'Directory Member';
+                const statusEval = evaluateAttendanceStatus(r);
+
+                csv += `"${r.rawId}","${empName}","${r.date || ''}","${r.time || ''}","${statusEval.text}","${r.manualOverride ? 'YES' : 'NO'}","${r.notes || ''}"\n`;
+            });
+
+            const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
+            const url = URL.createObjectURL(blob);
+            const link = document.createElement("a");
+            link.setAttribute("href", url);
+            link.setAttribute("download", `UPHS_Attendance_Export_${new Date().toISOString().slice(0,10)}.csv`);
+            document.body.appendChild(link);
+            link.click();
+            document.body.removeChild(link);
+        }
+
+        function importCSV(e) {
+            const file = e.target.files[0];
+            if (!file) return;
+
+            const reader = new FileReader();
+            reader.onload = function(evt) {
+                const text = evt.target.result;
+                const lines = text.split('\n').slice(1);
+                let count = 0;
+
+                lines.forEach(line => {
+                    if (!line.trim()) return;
+                    const parts = line.split(',').map(p => p.replace(/^"|"$/g, '').trim());
+                    if (parts.length >= 4) {
+                        const rawId = parts[0] || 'UNKNOWN';
+                        scanRecords.push({
+                            id: Date.now() + Math.floor(Math.random() * 1000),
+                            rawId: rawId,
+                            maskedId: maskID(rawId),
+                            date: parts[2] || new Date().toISOString().split('T')[0],
+                            time: parts[3] || new Date().toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit', second: '2-digit', hour12: true }),
+                            manualOverride: parts[5] === 'YES',
+                            notes: parts[6] || 'Imported Log'
+                        });
+                        count++;
+                    }
+                });
+
+                saveRecords();
+                renderExcelTable();
+                renderQuickLog();
+                alert(`Successfully imported ${count} scan log entries!`);
+            };
+            reader.readAsText(file);
+        }
+
+        function clearAllData() {
+            if (confirm("Clear all scan logs from system?")) {
+                scanRecords = [];
+                saveRecords();
+                renderExcelTable();
+                renderQuickLog();
+            }
+        }
+
+        // Theme Switchers
+        document.getElementById('theme-toggle').addEventListener('click', () => {
+            document.documentElement.classList.toggle('dark');
+        });
+        document.getElementById('theme-toggle-mobile').addEventListener('click', () => {
+            document.documentElement.classList.toggle('dark');
+        });
+
+        window.onload = function() {
+            document.getElementById('log-badge-count').textContent = scanRecords.length;
+            populateEmployeeDropdown();
+            renderQuickLog();
+            lucide.createIcons();
+            document.getElementById('id-input').focus();
+        };
+    </script>
+</body>
+</html>
